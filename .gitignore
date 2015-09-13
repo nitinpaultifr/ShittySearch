@@ -1,0 +1,16 @@
+# Common files
+*.backup
+*.pyc
+*.swp
+*.swo
+*~
+*.py~
+
+# Directories
+venv-barter/*
+env/*
+app/barterbox/static/.sass-cache/*
+app/barterbox/static/uploads/*
+
+# Password Files
+__init__.py
