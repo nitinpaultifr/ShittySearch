@@ -28,13 +28,12 @@ def index():
 
 @app.route('/search', methods = ['POST'])
 def search():
+    """
+    This is the main search code. Uses BeautifulSoup to scrape
+    the YCombinators front page for links and searches one-level
+    deep for the query string.
+    """
     form = SearchForm()
-
-    url_dump = ['http://masteringdjango.com/django-book/',
-		'https://www.djangopackages.com/grids/g/blogs/',
-		'https://code.djangoproject.com/wiki/Tutorials',
-		'http://matthewdaly.co.uk/blog/2013/12/28/django-blog-tutorial-the-next-generation-part-1/',
-		'http://www.creativebloq.com/netmag/get-started-django-7132932']
     	
     result_list = []
     url_list = []
@@ -42,11 +41,19 @@ def search():
     if request.method == 'POST':
 
         def generate_url_list():
+            """
+            Generates a list of URLs scrapped from the YCombinator
+            front page. 
+            """
             r = requests.get('https://news.ycombinator.com/')
             soup = BeautifulSoup(r.content)
-            target = soup.find_all('td', attrs={'class':'title'})          
-            stringtarget = unicode.join(u'\n', map(unicode, target))
+            target = soup.find_all('td', attrs={'class':'title'}) # selects all 'td' elements with class 'title'         
+            # 'target' is a ResultSet object, which for some reason wouldn't
+            # let me call methods over it again. Hence will have to 're-soup' it.
+            stringtarget = unicode.join(u'\n', map(unicode, target)) 
             soupagain = BeautifulSoup(stringtarget)
+            # Able to call the find_all() method now. Couldn't find 
+            # an alternative(better?) approach to this.
             for link in soupagain.find_all('a'):
                 url_dict = {
                         "url": link.get('href'),
@@ -54,16 +61,25 @@ def search():
                 }
                 url_list.append(url_dict)
 
-            return url_list
+            return url_list # Dictionary of URLs from YCombinator
 
 
 	for url in generate_url_list():    
+            # Some internal links were also scraped which were breaking
+            # the search. I added a check to 'get' the URL only if it has
+            # an 'http' part, making it a full URL.
             if "http" in url['url']:
 	        r = requests.get(url['url'])
 	        soup = BeautifulSoup(r.content)
                 q = form.queryfield.data
+                # Taught myslef all I can about regex. Still a bit shaky. 
+                # re.compile converts a regex into a regex object, while
+                # performing a sort of search, with passed parameters.
+                # This one worked for me.
                 result = soup(text=re.compile(q, re.IGNORECASE))
                 hits = len(result)
+                # Only the results with more than 0 hits are added to the
+                # result_list 
                 if hits > 0:
 	            result_dict = {
 		        "url": url['url'],
@@ -71,7 +87,9 @@ def search():
                         "text": url['text']
 	            }
 	            result_list.append(result_dict)
-        
+
+        # The result_list is sorted in the descending order according to 'hits' key.
+        # 'hits' corresoponds to the number of occurances of the search term in a page.
         sorted_result_list = sorted(result_list, key=itemgetter('hits'), reverse = True)
 
         return render_template('results.html',
