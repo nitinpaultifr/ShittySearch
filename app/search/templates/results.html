@@ -1,0 +1,14 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+  <!-- Hits: {{ hits }} <br>
+  Results: {{ result }} <br> -->
+  
+  <ul>    
+  {% for result in result_list %}
+    <li>{{ result['url'] }} [{{ result['hits'] }}]</li>
+  {% endfor %}
+  </ul>
+
+{% endblock %}
