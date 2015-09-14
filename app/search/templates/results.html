@@ -2,13 +2,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <!-- Hits: {{ hits }} <br>
-  Results: {{ result }} <br> -->
-  
+
+  <h4>You searched for '{{ query }}'</h4>
+
   <ul>    
   {% for result in result_list %}
-    <li>{{ result['url'] }} [{{ result['hits'] }}]</li>
+  <li>
+    <a href="{{ result['url'] }}"> {{ result['text'] }} </a> [{{ result['hits'] }}]
+  </li>  
   {% endfor %}
   </ul>
+
+  <h4>Another search?</h4>
+
+  <form action="{{ url_for('search') }}" method='POST'>
+    {{ form.hidden_tag() }}
+    <br>
+    {{ form.queryfield(placeholder='Search') }} <br>
+    {{ form.submit() }}
+  </form>
 
 {% endblock %}

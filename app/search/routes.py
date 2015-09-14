@@ -37,32 +37,48 @@ def search():
 		'http://www.creativebloq.com/netmag/get-started-django-7132932']
     	
     result_list = []
+    url_list = []
     
     if request.method == 'POST':
-	for url in url_dump:    
-	    r = requests.get(url)
-	    soup = BeautifulSoup(r.content)
-            q = form.queryfield.data
-            result = soup(text=re.compile(q, re.IGNORECASE))
-            hits = len(result)
-	    result_dict = {
-		    "url": url,
-		    "hits": hits
-	    }
-	    result_list.append(result_dict)
+
+        def generate_url_list():
+            r = requests.get('https://news.ycombinator.com/')
+            soup = BeautifulSoup(r.content)
+            target = soup.find_all('td', attrs={'class':'title'})          
+            stringtarget = unicode.join(u'\n', map(unicode, target))
+            soupagain = BeautifulSoup(stringtarget)
+            for link in soupagain.find_all('a'):
+                url_dict = {
+                        "url": link.get('href'),
+                        "text": link.text
+                }
+                url_list.append(url_dict)
+
+            return url_list
+
+
+	for url in generate_url_list():    
+            if "http" in url['url']:
+	        r = requests.get(url['url'])
+	        soup = BeautifulSoup(r.content)
+                q = form.queryfield.data
+                result = soup(text=re.compile(q, re.IGNORECASE))
+                hits = len(result)
+                if hits > 0:
+	            result_dict = {
+		        "url": url['url'],
+		        "hits": hits,
+                        "text": url['text']
+	            }
+	            result_list.append(result_dict)
         
         sorted_result_list = sorted(result_list, key=itemgetter('hits'), reverse = True)
 
-        #r = requests.get('http://masteringdjango.com/django-book/')
-        #soup = BeautifulSoup(r.content)
-        #q = form.queryfield.data
-        #result = soup(text=re.compile(q, re.IGNORECASE))
-        #hits = len(result)
-
         return render_template('results.html',
-				hits = hits,
-                                result = result,
-				result_list = sorted_result_list)
+				result_list = sorted_result_list,
+                                url_list = generate_url_list(),
+                                query = form.queryfield.data,
+                                form = form)
 
     elif request.method == 'GET':
         return redirect(url_for('index'))
