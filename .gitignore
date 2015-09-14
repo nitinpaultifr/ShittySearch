@@ -13,4 +13,3 @@ app/barterbox/static/.sass-cache/*
 app/barterbox/static/uploads/*
 
 # Password Files
-__init__.py
