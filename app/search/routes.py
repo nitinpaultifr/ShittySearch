@@ -5,6 +5,7 @@ from forms import SearchForm
 from models import db
 from bs4 import BeautifulSoup
 import requests, re
+from operator import itemgetter
 
 @app.route('/', methods = ['GET','POST'])
 @app.route('/index', methods = ['GET', 'POST'])
@@ -49,7 +50,8 @@ def search():
 		    "hits": hits
 	    }
 	    result_list.append(result_dict)
-
+        
+        sorted_result_list = sorted(result_list, key=itemgetter('hits'), reverse = True)
 
         #r = requests.get('http://masteringdjango.com/django-book/')
         #soup = BeautifulSoup(r.content)
@@ -60,7 +62,7 @@ def search():
         return render_template('results.html',
 				hits = hits,
                                 result = result,
-				result_list = result_list)
+				result_list = sorted_result_list)
 
     elif request.method == 'GET':
         return redirect(url_for('index'))
