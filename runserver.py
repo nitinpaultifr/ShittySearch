@@ -1,5 +1,5 @@
 
-from socialweb import app
+from search import app
 import os
 
 port = int(os.environ.get('PORT', 5000))
